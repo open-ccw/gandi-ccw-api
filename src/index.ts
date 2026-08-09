@@ -6,7 +6,7 @@ export function setCCWApi(vm: VirtualMachine) {
       throw new Error("Function not implemented.");
     },
     getOpenVM(): Partial<VirtualMachine> {
-      throw new Error("Function not implemented.");
+      return { runtime: vm.runtime };
     },
     async getOnlineExtensionsConfig(): Promise<any> {
       throw new Error("Function not implemented.");
