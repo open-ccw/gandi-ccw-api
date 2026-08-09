@@ -1,0 +1,41 @@
+{
+  "name": "@open-ccw/gandi-ccw-api",
+  "version": "0.0.1",
+  "description": "CCW-API for gandi-vm",
+  "license": "MIT",
+  "author": "Meng-Fuzi",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": {
+        "import": "./dist/index.d.mts",
+        "require": "./dist/index.d.cts"
+      },
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "tsdown": "^0.22.14"
+  },
+  "devDependencies": {
+    "@open-ccw/scratch-vm": "^9.9.12",
+    "typescript": "^5.9.3"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  }
+}
