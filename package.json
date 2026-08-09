@@ -1,6 +1,6 @@
 {
   "name": "@open-ccw/gandi-ccw-api",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "CCW-API for gandi-vm",
   "license": "MIT",
   "author": "Meng-Fuzi",
@@ -29,6 +29,8 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
+    "@ccw-api/api": "^2.0.0",
+    "@ccw-api/request": "^1.2.2",
     "tsdown": "^0.22.14"
   },
   "devDependencies": {
