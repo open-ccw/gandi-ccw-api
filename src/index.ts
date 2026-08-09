@@ -1,7 +1,13 @@
 import type VirtualMachine from "@open-ccw/scratch-vm";
-import { communityWeb, setRequestUtils } from "@ccw-api/api";
+import { setRequestUtils } from "@ccw-api/api";
 import { requestUtils } from "@ccw-api/request";
 setRequestUtils(requestUtils);
+
+export interface ReputationScore {
+  rank?: string;
+  score: number;
+  studentOid?: string;
+}
 
 export interface UserInfo {
   userId?: string;
@@ -15,86 +21,83 @@ export interface UserInfo {
   liked: number;
   gender: number; // 0: male
   pendant: string;
-  reputationScore?: {
-    rank?: string;
-    score: number;
-    studentOid?: string;
+  reputationScore?: ReputationScore;
+}
+
+/**
+ * 外部传入的原始用户详情数据(来自 getStudentSelfDetail / getCreationStudentDetail)。
+ */
+export interface UserDetailData {
+  selfDetail?: {
+    name?: string;
+    avatar?: string;
+    oid?: string;
+    studentNumber?: string;
+    virtualValue?: string;
+    gender?: string;
+    constellation?: number;
+    reputationScore?: ReputationScore;
+  };
+  creationStudent?: {
+    name?: string;
+    avatar?: string;
+    oid?: string;
+    virtualValue?: string;
+    likeCount?: number;
+    followerCount?: number;
+    followingCount?: number;
   };
 }
 
 export interface CCWApiController {
-  preloadUserInfo(oid: string): Promise<UserInfo>;
+  prepareUserInfo(data: UserDetailData): Promise<UserInfo>;
   clearUserInfoCache(): void;
 }
 
 export function setCCWApi(vm: VirtualMachine): CCWApiController {
   let userInfoCache: UserInfo | null = null;
-  let userInfoPromise: Promise<UserInfo> | null = null;
 
-  /**
-   * 拉取并组装用户信息。
-   * 若传入已知 oid,则跳过 getStudentSelfDetail,只请求 getCreationStudentDetail,减少一次网络请求。
-   */
-  async function fetchUserInfo(knownOid?: string): Promise<UserInfo> {
-    let oid = knownOid;
-    let selfDetail: any = null;
-
-    if (!oid) {
-      selfDetail = await communityWeb.getStudentSelfDetail(false, false, []);
-      oid = selfDetail.oid;
-    }
-
-    const student = await communityWeb.getCreationStudentDetail(oid!);
-    const {
-      name,
-      avatar,
-      oid: studentOid,
-      virtualValue: studentVirtualValue,
-    } = student;
-
+  /** 将外部传入的原始数据组装为 UserInfo。 */
+  function assembleUserInfo(data: UserDetailData): UserInfo {
+    const self = data.selfDetail ?? {};
+    const stu = data.creationStudent ?? {};
+    const oid = self.oid ?? stu.oid ?? "";
     return {
-      userName: selfDetail?.name ?? name,
-      avatar: selfDetail?.avatar ?? avatar,
-      oid: studentOid ?? oid,
-      uuid: studentOid ?? oid,
-      userId: selfDetail?.studentNumber,
+      userName: self.name ?? stu.name ?? "",
+      avatar: self.avatar ?? stu.avatar ?? "",
+      oid,
+      uuid: oid,
+      userId: self.studentNumber,
       gender: 0,
-      constellation: 0,
-      liked: student.likeCount,
-      followers: student.followerCount,
-      following: student.followingCount,
-      pendant: selfDetail?.virtualValue ?? studentVirtualValue,
-      reputationScore: selfDetail?.reputationScore,
+      constellation: self.constellation ?? 0,
+      liked: stu.likeCount ?? 0,
+      followers: stu.followerCount ?? 0,
+      following: stu.followingCount ?? 0,
+      pendant: self.virtualValue ?? stu.virtualValue ?? "",
+      reputationScore: self.reputationScore,
     };
   }
 
-  /** 懒加载 + 缓存:首次调用发起请求,后续直接命中缓存;并发调用共用同一 Promise。 */
-  function getUserInfoCached(knownOid?: string): Promise<UserInfo> {
+  /** 读取缓存的用户信息;若外部尚未提供数据则抛出错误。 */
+  function getUserInfoCached(): Promise<UserInfo> {
     if (userInfoCache) return Promise.resolve(userInfoCache);
-    if (!userInfoPromise) {
-      userInfoPromise = fetchUserInfo(knownOid)
-        .then((info) => {
-          userInfoCache = info;
-          return info;
-        })
-        .finally(() => {
-          userInfoPromise = null;
-        });
-    }
-    return userInfoPromise;
+    return Promise.reject(
+      new Error("User detail data has not been provided externally."),
+    );
   }
 
   const controller: CCWApiController = {
     /**
-     * 外部手动传入 oid,提前加载并缓存用户信息。
-     * 由于 oid 已知,可跳过 getStudentSelfDetail,仅需一次 getCreationStudentDetail 请求。
+     * 外部手动传入用户详情原始数据(oid、自我信息、创作统计数据等),
+     * 组装为 UserInfo 并缓存,供后续 getUserInfo 直接读取,不再内部请求网络。
      */
-    preloadUserInfo(oid: string): Promise<UserInfo> {
-      return getUserInfoCached(oid);
+    prepareUserInfo(data: UserDetailData): Promise<UserInfo> {
+      const info = assembleUserInfo(data);
+      userInfoCache = info;
+      return Promise.resolve(info);
     },
     clearUserInfoCache(): void {
       userInfoCache = null;
-      userInfoPromise = null;
     },
   };
 
