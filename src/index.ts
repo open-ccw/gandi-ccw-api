@@ -1,4 +1,5 @@
 import type VirtualMachine from "@open-ccw/scratch-vm";
+import { getOnlineExtensionsConfig } from "./onlineExtCfg";
 
 export interface ReputationScore {
   rank?: string;
@@ -35,8 +36,8 @@ export function setCCWApi(
     getOpenVM(): Partial<VirtualMachine> {
       return { runtime: vm.runtime };
     },
-    async getOnlineExtensionsConfig(): Promise<any> {
-      throw new Error("Function not implemented.");
+    getOnlineExtensionsConfig(): any {
+      return getOnlineExtensionsConfig();
     },
     getExtensionURLById(id: string): Promise<string> {
       return getExtUrl(id);
