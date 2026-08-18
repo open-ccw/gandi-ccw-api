@@ -1,4 +1,4 @@
-export function getOnlineExtensionsConfig() {
+export function getOnlineExtensionsConfig(args: {}) {
   const config = {
     fileSrc: "",
     hosts: {

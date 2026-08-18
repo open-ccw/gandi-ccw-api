@@ -27,7 +27,12 @@ export function setCCWApi(
   {
     userInfo,
     getExtUrl,
-  }: { userInfo: UserInfo; getExtUrl(id: string): Promise<string> },
+    projectOid,
+  }: {
+    userInfo: UserInfo;
+    getExtUrl(id: string): Promise<string>;
+    projectOid: string;
+  },
 ) {
   vm.setCCWAPI({
     getCoinCount(): Promise<number> {
@@ -37,7 +42,7 @@ export function setCCWApi(
       return { runtime: vm.runtime };
     },
     getOnlineExtensionsConfig(): any {
-      return getOnlineExtensionsConfig();
+      return getOnlineExtensionsConfig({});
     },
     getExtensionURLById(id: string): Promise<string> {
       return getExtUrl(id);
@@ -57,8 +62,8 @@ export function setCCWApi(
     getProjectStats(): Promise<any> {
       throw new Error("Function not implemented.");
     },
-    getProjectUUID(): void {
-      throw new Error("Function not implemented.");
+    getProjectUUID(): string {
+      return projectOid;
     },
     async getUserInfo(): Promise<UserInfo> {
       return Promise.resolve(userInfo);
