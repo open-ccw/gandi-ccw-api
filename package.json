@@ -1,6 +1,6 @@
 {
   "name": "@open-ccw/gandi-ccw-api",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "CCW-API for gandi-vm",
   "license": "MIT",
   "author": "Meng-Fuzi",
